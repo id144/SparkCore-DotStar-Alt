@@ -41,9 +41,9 @@ class Adafruit_DotStar_alt {
 
  public:
 
-    Adafruit_DotStar(uint16_t n, uint8_t o=DOTSTAR_GBR);
-    Adafruit_DotStar(uint16_t n, uint8_t d, uint8_t c, uint8_t o=DOTSTAR_GBR);
-   ~Adafruit_DotStar(void);                 // Destructor
+    Adafruit_DotStar_alt(uint16_t n, uint8_t o=DOTSTAR_GBR);
+    Adafruit_Adafruit_DotStar_altDotStar(uint16_t n, uint8_t d, uint8_t c, uint8_t o=DOTSTAR_GBR);
+   ~Adafruit_DotStar_alt(void);                 // Destructor
   void
     begin(void),                            // Prime pins/SPI for output
     clear(),                                // Set all pixel data to zero
