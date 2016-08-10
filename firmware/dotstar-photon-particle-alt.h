@@ -37,7 +37,7 @@
 #define DOTSTAR_BRG (1 | (2 << 2) | (0 << 4))
 #define DOTSTAR_BGR (2 | (1 << 2) | (0 << 4))
 
-class Adafruit_DotStar {
+class Adafruit_DotStar_alt {
 
  public:
 

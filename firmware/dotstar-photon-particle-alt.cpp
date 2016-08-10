@@ -50,7 +50,7 @@
 #define USE_HW_SPI 255 // Assign this to dataPin to indicate 'hard' SPI
 
 // Constructor for hardware SPI -- must connect to MOSI, SCK pins
-Adafruit_DotStar::Adafruit_DotStar(uint16_t n, uint8_t o) :
+Adafruit_DotStar_alt::Adafruit_DotStar_alt(uint16_t n, uint8_t o) :
  numLEDs(n), dataPin(USE_HW_SPI), brightness(0), pixels(NULL),
  rOffset(o & 3), gOffset((o >> 2) & 3), bOffset((o >> 4) & 3)
 {
@@ -58,7 +58,7 @@ Adafruit_DotStar::Adafruit_DotStar(uint16_t n, uint8_t o) :
 }
 
 // Constructor for 'soft' (bitbang) SPI -- any two pins can be used
-Adafruit_DotStar::Adafruit_DotStar(uint16_t n, uint8_t data, uint8_t clock,
+Adafruit_DotStar_alt::Adafruit_DotStar_alt(uint16_t n, uint8_t data, uint8_t clock,
   uint8_t o) :
  dataPin(data), clockPin(clock), brightness(0), pixels(NULL),
  rOffset(o & 3), gOffset((o >> 2) & 3), bOffset((o >> 4) & 3)
@@ -66,13 +66,13 @@ Adafruit_DotStar::Adafruit_DotStar(uint16_t n, uint8_t data, uint8_t clock,
   updateLength(n);
 }
 
-Adafruit_DotStar::~Adafruit_DotStar(void) { // Destructor
+Adafruit_DotStar_alt::~Adafruit_DotStar_alt(void) { // Destructor
   if(pixels)                free(pixels);
   if(dataPin == USE_HW_SPI) hw_spi_end();
   else                      sw_spi_end();
 }
 
-void Adafruit_DotStar::begin(void) { // Initialize SPI
+void Adafruit_DotStar_alt::begin(void) { // Initialize SPI
   if(dataPin == USE_HW_SPI) hw_spi_init();
   else                      sw_spi_init();
 }
@@ -84,14 +84,14 @@ void Adafruit_DotStar::begin(void) { // Initialize SPI
 // etc.  They won't update simultaneously, but usually unnoticeable.
 
 // Change to hardware SPI -- must connect to MOSI, SCK pins
-void Adafruit_DotStar::updatePins(void) {
+void Adafruit_DotStar_alt::updatePins(void) {
   sw_spi_end();
   dataPin = USE_HW_SPI;
   hw_spi_init();
 }
 
 // Change to 'soft' (bitbang) SPI -- any two pins can be used
-void Adafruit_DotStar::updatePins(uint8_t data, uint8_t clock) {
+void Adafruit_DotStar_alt::updatePins(uint8_t data, uint8_t clock) {
   hw_spi_end();
   dataPin  = data;
   clockPin = clock;
@@ -102,7 +102,7 @@ void Adafruit_DotStar::updatePins(uint8_t data, uint8_t clock) {
 // config not hardcoded).  But DON'T use this for "recycling" strip RAM...
 // all that reallocation is likely to fragment and eventually fail.
 // Instead, set length once to longest strip.
-void Adafruit_DotStar::updateLength(uint16_t n) {
+void Adafruit_DotStar_alt::updateLength(uint16_t n) {
   if(pixels) free(pixels);
   uint16_t bytes = n * 3;
   if((pixels = (uint8_t *)malloc(bytes))) {
@@ -115,7 +115,7 @@ void Adafruit_DotStar::updateLength(uint16_t n) {
 
 // SPI STUFF ---------------------------------------------------------------
 
-void Adafruit_DotStar::hw_spi_init(void) { // Initialize hardware SPI
+void Adafruit_DotStar_alt::hw_spi_init(void) { // Initialize hardware SPI
   SPI.begin();
   // 72MHz / 4 = 18MHz (sweet spot)
   // Any slower than 18MHz and you are barely faster than Software SPI.
@@ -125,23 +125,23 @@ void Adafruit_DotStar::hw_spi_init(void) { // Initialize hardware SPI
   SPI.setDataMode(SPI_MODE0);
 }
 
-inline void Adafruit_DotStar::hw_spi_end(void) { // Stop hardware SPI
+inline void Adafruit_DotStar_alt::hw_spi_end(void) { // Stop hardware SPI
   SPI.end();
 }
 
-void Adafruit_DotStar::sw_spi_init(void) { // Init 'soft' (bitbang) SPI
+void Adafruit_DotStar_alt::sw_spi_init(void) { // Init 'soft' (bitbang) SPI
   pinMode(dataPin , OUTPUT);
   pinMode(clockPin, OUTPUT);
   pinSet(dataPin , LOW);
   pinSet(clockPin, LOW);
 }
 
-void Adafruit_DotStar::sw_spi_end() { // Stop 'soft' SPI
+void Adafruit_DotStar_alt::sw_spi_end() { // Stop 'soft' SPI
   pinMode(dataPin , INPUT);
   pinMode(clockPin, INPUT);
 }
 
-void Adafruit_DotStar::sw_spi_out(uint8_t n) { // Bitbang SPI write
+void Adafruit_DotStar_alt::sw_spi_out(uint8_t n) { // Bitbang SPI write
   for(uint8_t i=8; i--; n <<= 1) {
     if(n & 0x80) pinSet(dataPin, HIGH);
     else         pinSet(dataPin, LOW);
@@ -163,15 +163,14 @@ void Adafruit_DotStar::sw_spi_out(uint8_t n) { // Bitbang SPI write
   own use, but any pull requests for this will NOT be merged, nuh uh!
 */
 
-void Adafruit_DotStar::show(void) {
+void Adafruit_DotStar_alt::show(void) {
 
   uint8_t *ptr = pixels, i;            // -> LED data
   uint16_t n   = numLEDs;              // Counter
-  uint16_t b16 = (uint16_t)brightness; // Type-convert for fixed-point math
-
   //__disable_irq(); // If 100% focus on SPI clocking required
 
     for(i=0; i<4; i++) spi_out(0x00);    // 4 byte start-frame marker
+ 
     do {                               // For each pixel...
       spi_out(0xFF);                   //  Pixel start
       for(i=0; i<3; i++) spi_out(*ptr++); // Write R,G,B
@@ -187,12 +186,12 @@ void Adafruit_DotStar::show(void) {
   //__enable_irq();
 }
 
-inline void Adafruit_DotStar::clear() { // Write 0s (off) to full pixel buffer
+inline void Adafruit_DotStar_alt::clear() { // Write 0s (off) to full pixel buffer
   memset(pixels, 0, numLEDs * 3);
 }
 
 // Set pixel color, separate R,G,B values (0-255 ea.)
-void Adafruit_DotStar::setPixelColor(
+void Adafruit_DotStar_alt::setPixelColor(
  uint16_t n, uint8_t r, uint8_t g, uint8_t b) {
   if(n < numLEDs) {
     uint8_t *p = &pixels[n * 3];
@@ -203,7 +202,7 @@ void Adafruit_DotStar::setPixelColor(
 }
 
 // Set pixel color, 'packed' RGB value (0x000000 - 0xFFFFFF)
-void Adafruit_DotStar::setPixelColor(uint16_t n, uint32_t c) {
+void Adafruit_DotStar_alt::setPixelColor(uint16_t n, uint32_t c) {
   if(n < numLEDs) {
     uint8_t *p = &pixels[n * 3];
     p[rOffset] = (uint8_t)(c >> 16);
@@ -213,12 +212,12 @@ void Adafruit_DotStar::setPixelColor(uint16_t n, uint32_t c) {
 }
 
 // Convert separate R,G,B to packed value
-uint32_t Adafruit_DotStar::Color(uint8_t r, uint8_t g, uint8_t b) {
+uint32_t Adafruit_DotStar_alt::Color(uint8_t r, uint8_t g, uint8_t b) {
   return ((uint32_t)r << 16) | ((uint32_t)g << 8) | b;
 }
 
 // Read color from previously-set pixel, returns packed RGB value.
-uint32_t Adafruit_DotStar::getPixelColor(uint16_t n) const {
+uint32_t Adafruit_DotStar_alt::getPixelColor(uint16_t n) const {
   if(n >= numLEDs) return 0;
   uint8_t *p = &pixels[n * 3];
   return ((uint32_t)p[rOffset] << 16) |
@@ -226,7 +225,7 @@ uint32_t Adafruit_DotStar::getPixelColor(uint16_t n) const {
           (uint32_t)p[bOffset];
 }
 
-uint16_t Adafruit_DotStar::numPixels(void) { // Ret. strip length
+uint16_t Adafruit_DotStar_alt::numPixels(void) { // Ret. strip length
   return numLEDs;
 }
 
@@ -237,7 +236,7 @@ uint16_t Adafruit_DotStar::numPixels(void) { // Ret. strip length
 // in this library is 'non destructive' -- it's applied as color data is
 // being issued to the strip, not during setPixel(), and also means that
 // getPixelColor() returns the exact value originally stored.
-inline void Adafruit_DotStar::setBrightness(uint8_t b) {
+inline void Adafruit_DotStar_alt::setBrightness(uint8_t b) {
   // Stored brightness value is different than what's passed.  This
   // optimizes the actual scaling math later, allowing a fast 8x8-bit
   // multiply and taking the MSB.  'brightness' is a uint8_t, adding 1
@@ -247,13 +246,13 @@ inline void Adafruit_DotStar::setBrightness(uint8_t b) {
   brightness = b + 1;
 }
 
-inline uint8_t Adafruit_DotStar::getBrightness(void) const {
+inline uint8_t Adafruit_DotStar_alt::getBrightness(void) const {
   return brightness - 1; // Reverse above operation
 }
 
 // Return pointer to the library's pixel data buffer.  Use carefully,
 // much opportunity for mayhem.  It's mostly for code that needs fast
 // transfers, e.g. SD card to LEDs.  Color data is in BGR order.
-inline uint8_t *Adafruit_DotStar::getPixels(void) const {
+inline uint8_t *Adafruit_DotStar_alt::getPixels(void) const {
   return pixels;
 }
