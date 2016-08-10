@@ -2,7 +2,7 @@
   "name": "dotstar-photon-particle-alt",
   "author": "Adafruit, Technobly, id144",
   "license": "GNU GPLv3",
-  "version": "0.0.3",
+  "version": "0.0.31",
   "description": "An Implementation of Adafruit's DotStar Library for the Spark Core",
   "namespace": "Adafruit_DotStar_alt"
 }
